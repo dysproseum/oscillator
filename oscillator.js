@@ -1,18 +1,20 @@
+// Create web audio API context
 var audioCtx;
 
 // Create Oscillator node
-var oscillator;
+var oscillators = [];
 
 var gainNode;
 
 // to build out note buttons.
-var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+//var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // to store global variable for current octave for keyboard presses.
 var octaveNum = 3;
 
-var latestKeyPressed;
 var gainTimeout;
+
+var waveType = "sine";
 
 // Takes string of Note + Octave
 // Example:
@@ -47,52 +49,40 @@ window.onload = function() {
     // Create web audio API context
     audioCtx = new AudioContext();
     
-    // Create Oscillator node
-    oscillator = audioCtx.createOscillator();
-    
-    // The type property can be set to one of the following values: "sine", "square", "sawtooth", or "triangle".
-    oscillator.type = "sine"; // Set waveform type
-    
-    // The frequency property can be dynamically changed while the oscillator is playing by using methods like setValueAtTime or linearRampToValueAtTime
-    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // Set frequency in hertz
-    
     // Create GainNode to control volume
     gainNode = new GainNode(audioCtx, { gain: rangeV.value }); // Set initial gain
     
-    // Connect nodes in the audio graph
-    oscillator.connect(gainNode).connect(audioCtx.destination);
-
-    // Start the oscillator to play sound
-    oscillator.start();
-  
     // Start and connect oscilloscope.
     oscilloscope();
   });
   
   var btnStop = document.getElementById("stop");
   btnStop.addEventListener("click", function() {
-    oscillator.stop();
+    for (i in oscillators) {
+      oscillators[i].stop();
+      delete oscillators[i];
+    }
   });
  
-  // @todo switch to radio buttons or assign variable onclick.
+  // Assign waveType variable onclick.
   var btnSine = document.getElementById("sine");
   btnSine.addEventListener("click", function() {
-    oscillator.type = "sine";
+    waveType = "sine";
   });
   
   var btnSquare = document.getElementById("square");
   btnSquare.addEventListener("click", function() {
-    oscillator.type = "square";
+    waveType = "square";
   });
 
   var btnSawtooth = document.getElementById("sawtooth");
   btnSawtooth.addEventListener("click", function() {
-    oscillator.type = "sawtooth";
+    waveType = "sawtooth";
   });
 
   var btnTriangle = document.getElementById("triangle");
   btnTriangle.addEventListener("click", function() {
-    oscillator.type = "triangle";
+    waveType = "triangle";
   });
   
   var rangeY = document.getElementById("y");
@@ -101,8 +91,17 @@ window.onload = function() {
     if (gainNode.gain.value > 0) {
       gainNode.gain.value = rangeV.value;
     }
+    // Create Oscillator node
+    if (!oscillators["slider"]) {
+      oscillators["slider"] = audioCtx.createOscillator();
+      oscillators["slider"].connect(gainNode).connect(audioCtx.destination);
+      oscillators["slider"].start();
+    }
+
+    oscillators["slider"].type = waveType; // Set waveform type
+    oscillators["slider"].frequency.setValueAtTime(this.value, audioCtx.currentTime);
     //oscillator.frequency.setValueAtTime(this.value, audioCtx.currentTime);
-    oscillator.frequency.linearRampToValueAtTime(this.value, audioCtx.currentTime + 0.1);
+    //oscillator.frequency.linearRampToValueAtTime(this.value, audioCtx.currentTime + 0.1);
     //gainNode.gain.value = rangeV.value;
     spanY.innerHTML = this.value;
   });
@@ -233,18 +232,44 @@ window.onload = function() {
     btn.id = item.note;
     btn.dataset.octave = item.octave;
     btn.innerHTML = item.key;
-    btn.addEventListener("click", keyCallback);
+
+    btn.addEventListener("mousedown", btnPress);
+    btn.addEventListener("touchstart", btnPress);
+    btn.addEventListener("mouseup", btnRelease);
+    btn.addEventListener("mouseout", btnRelease);
+    btn.addEventListener("touchend", btnRelease);
+    btn.addEventListener("selectstart", function() {
+      return false;
+    });
     return btn;
   };
 
-  var keyCallback = function(item) {
+  var btnPress = function(e) {
+    // Ignore right clicks. Touch presses are e.button == undefined.
+    if (e.button == 2) {
+      return;
+    }
+
+    oscillators[this.id] = audioCtx.createOscillator();
+    oscillators[this.id].type = waveType; // Set waveform type
+    oscillators[this.id].connect(gainNode).connect(audioCtx.destination);
+
     var note = this.id + (parseInt(this.dataset.octave) + parseInt(octaveNum));
     var freq = getFrequency(note);
-    oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gainNode.gain.value = rangeV.value;
-    // use lastKeyPressed to end note on mouseup?
+    oscillators[this.id].frequency.setValueAtTime(freq, audioCtx.currentTime);
+    oscillators[this.id].start();
+    //gainNode.gain.value = rangeV.value;
+
     rangeY.value = freq;
     spanY.innerHTML = freq.toFixed(2);
+  };
+
+  var btnRelease = function(e) {
+    //console.log(e);
+    if (oscillators[this.id]) {
+      oscillators[this.id].stop();
+    }
+    //delete oscillators[this.id];
   };
 
   var setupOctaveButton = function(item) {
@@ -296,9 +321,11 @@ window.onload = function() {
   var body = document.querySelector("body");
   body.addEventListener("keydown", function(e) {
     if (e.target.nodeName == "INPUT" && e.target.type == "text") {
-      return false;
+      //e.preventDefault();
+      // return false;
+      //console.log(e.code);
     }
-    latestKeyPressed = e.code;
+    // console.log(e.code);
 
     var note;
     switch (e.code) {
@@ -368,12 +395,29 @@ window.onload = function() {
     }
 
     // clearTimeout to lower volume
-    clearTimeout(gainTimeout);
+    //clearTimeout(gainTimeout);
+
+    if (!note) {
+      return;
+    }
+
+    // Create Oscillator node
+    if (oscillators[e.code]) {
+      return;
+    }
+
+    if (!audioCtx) {
+      return;
+    }
+    oscillators[e.code] = audioCtx.createOscillator();
+    oscillators[e.code].type = waveType; // Set waveform type
+    oscillators[e.code].connect(gainNode).connect(audioCtx.destination);
 
     var freq = getFrequency(note);
-    oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    oscillators[e.code].frequency.setValueAtTime(freq, audioCtx.currentTime);
+    oscillators[e.code].start();
     //gainNode.gain.value = rangeV.value;
-    gainNode.gain.linearRampToValueAtTime(rangeV.value, audioCtx.currentTime + parseFloat(rangeX.value));
+    //gainNode.gain.linearRampToValueAtTime(rangeV.value, audioCtx.currentTime + parseFloat(rangeX.value));
 
     rangeY.value = freq;
     spanY.innerHTML = freq.toFixed(2);
@@ -383,14 +427,21 @@ window.onload = function() {
   });
 
   body.addEventListener("keyup", function(e) {
-    if (e.code != latestKeyPressed) {
-      return;
+    // this event fires right away on mobile keyboard input.
+    var timeout = 0;
+    if (e.target.nodeName == "INPUT" && e.target.type == "text") {
+      timeout = 100;
     }
+
     // setTimeout to lower volume
     gainTimeout = setTimeout(function() { 
+      if (oscillators[e.code]) {
+        oscillators[e.code].stop();
+        delete oscillators[e.code];
+      }
       // gainNode.gain.value = 0;
-      gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + parseFloat(rangeX.value));
-    }, 100);
+      // gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + parseFloat(rangeX.value));
+    }, timeout);
   });
 
 };
