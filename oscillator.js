@@ -3,16 +3,13 @@ var audioCtx;
 
 // Create Oscillator node
 var oscillators = [];
-
 var gainNode;
-
-// to build out note buttons.
-//var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+var gainNodes = [];
+var keyData = [];
 
 // to store global variable for current octave for keyboard presses.
 var octaveNum = 3;
-
-var gainTimeout;
+var spanOctave;
 
 var waveType = "sine";
 
@@ -41,6 +38,85 @@ var getFrequency = function (note) {
     // Return frequency of note
     return 440 * Math.pow(2, (keyNumber- 49) / 12);
 };
+
+function mapKeyToNote(key) {
+
+    var note;
+    switch (key) {
+      case 'KeyZ':
+        octaveNum--;
+        spanOctave.innerHTML = octaveNum;
+        return;
+      case 'KeyX':
+        octaveNum++;
+        spanOctave.innerHTML = octaveNum;
+        return;
+      case 'KeyA':
+        note = 'C' + octaveNum;
+        break;
+      case 'KeyS':
+        note = 'D' + octaveNum;
+        break;
+      case 'KeyD':
+        note = 'E' + octaveNum;
+        break;
+      case 'KeyF':
+        note = 'F' + octaveNum;
+        break;
+      case 'KeyG':
+        note = 'G' + octaveNum;
+        break;
+      case 'KeyH':
+        note = 'A' + octaveNum;
+        break;
+      case 'KeyJ':
+        note = 'B' + octaveNum;
+        break;
+      case 'KeyK':
+        note = 'C' + (octaveNum + 1);
+        break;
+      case 'KeyL':
+        note = 'D' + (octaveNum + 1);
+        break;
+      case 'Semicolon':
+        note = 'E' + (octaveNum + 1);
+        break;
+      case 'Quote':
+        note = 'F' + (octaveNum + 1);
+        break;
+
+      case 'KeyW':
+        note = 'C#' + octaveNum;
+        break;
+      case 'KeyE':
+        note = 'D#' + octaveNum;
+        break;
+      case 'KeyT':
+        note = 'F#' + octaveNum;
+        break;
+      case 'KeyY':
+        note = 'G#' + octaveNum;
+        break;
+      case 'KeyU':
+        note = 'A#' + octaveNum;
+        break;
+      case 'KeyO':
+        note = 'C#' + (octaveNum + 1);
+        break;
+      case 'KeyP':
+        note = 'D#' + (octaveNum + 1);
+        break;
+    }
+    return note;
+}
+
+function toggleKeyPress() {
+    // @todo get button by id and add class "active"
+    var btnId = note.slice(0, -1);
+    var dataOctave = note.slice(1) - numOctave;
+    var btn = document.getElementById(btnId);
+    btn.classList.add("active");
+}
 
 window.onload = function() {
 
@@ -111,8 +187,11 @@ window.onload = function() {
     gainNode.gain.value = this.value;
   });
 
-  var rangeX = document.getElementById("x");
-  var spanOctave = document.getElementById("octave");
+  var rangeA = document.getElementById("a");
+  var rangeD = document.getElementById("d");
+  var rangeS = document.getElementById("s");
+  var rangeR = document.getElementById("r");
+  spanOctave = document.getElementById("octave");
 
   var topNotes = [
     {
@@ -321,103 +400,58 @@ window.onload = function() {
   var body = document.querySelector("body");
   body.addEventListener("keydown", function(e) {
     if (e.target.nodeName == "INPUT" && e.target.type == "text") {
-      //e.preventDefault();
+      // e.preventDefault();
       // return false;
-      //console.log(e.code);
+      // console.log(e.code);
     }
     // console.log(e.code);
-
-    var note;
-    switch (e.code) {
-      case 'KeyZ':
-        octaveNum--;
-        spanOctave.innerHTML = octaveNum;
-        return;
-      case 'KeyX':
-        octaveNum++;
-        spanOctave.innerHTML = octaveNum;
-        return;
-      case 'KeyA':
-        note = 'C' + octaveNum;
-        break;
-      case 'KeyS':
-        note = 'D' + octaveNum;
-        break;
-      case 'KeyD': 
-        note = 'E' + octaveNum;
-        break;
-      case 'KeyF':
-        note = 'F' + octaveNum;
-        break;
-      case 'KeyG':
-        note = 'G' + octaveNum;
-        break;
-      case 'KeyH':
-        note = 'A' + octaveNum;
-        break;
-      case 'KeyJ':
-        note = 'B' + octaveNum;
-        break;
-      case 'KeyK':
-        note = 'C' + (octaveNum + 1);
-        break;
-      case 'KeyL':
-        note = 'D' + (octaveNum + 1);
-        break;
-      case 'Semicolon':
-        note = 'E' + (octaveNum + 1);
-        break;
-      case 'Quote':
-        note = 'F' + (octaveNum + 1);
-        break;
-
-      case 'KeyW':
-        note = 'C#' + octaveNum;
-        break;
-      case 'KeyE':
-        note = 'D#' + octaveNum;
-        break;
-      case 'KeyT':
-        note = 'F#' + octaveNum;
-        break;
-      case 'KeyY':
-        note = 'G#' + octaveNum;
-        break;
-      case 'KeyU':
-        note = 'A#' + octaveNum;
-        break;
-      case 'KeyO':
-        note = 'C#' + (octaveNum + 1);
-        break;
-      case 'KeyP':
-        note = 'D#' + (octaveNum + 1);
-        break;
-    }
-
-    // clearTimeout to lower volume
-    //clearTimeout(gainTimeout);
-
-    if (!note) {
-      return;
-    }
-
-    // Create Oscillator node
-    if (oscillators[e.code]) {
-      return;
-    }
 
     if (!audioCtx) {
       return;
     }
-    oscillators[e.code] = audioCtx.createOscillator();
-    oscillators[e.code].type = waveType; // Set waveform type
-    oscillators[e.code].connect(gainNode).connect(audioCtx.destination);
 
+    var note = mapKeyToNote(e.code);
+    if (!note) {
+      return;
+    }
     var freq = getFrequency(note);
-    oscillators[e.code].frequency.setValueAtTime(freq, audioCtx.currentTime);
-    oscillators[e.code].start();
-    //gainNode.gain.value = rangeV.value;
-    //gainNode.gain.linearRampToValueAtTime(rangeV.value, audioCtx.currentTime + parseFloat(rangeX.value));
+
+    // Oscillator and gainNode are reused.
+    if (keyData[e.code] && keyData[e.code]['timeout']) {
+      clearTimeout(keyData[e.code]['timeout']);
+      delete keyData[e.code]['timeout'];
+
+      //keyData[e.code]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
+      if (keyData[e.code]['oscillator'].frequency.value.toFixed(2) != freq.toFixed(2)) {
+        keyData[e.code]['oscillator'].frequency.setValueAtTime(freq, audioCtx.currentTime);
+      }
+      if (keyData[e.code]['oscillator'].type != waveType) {
+        keyData[e.code]['oscillator'].type = waveType;
+      }
+
+      // Ramp quickly up - attack.
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
+      // Then decay down to a sustain level
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+    }
+    else if (keyData[e.code]) {
+      // this event keeps getting fired while the key is held down.
+      return;
+    }
+    else {
+      keyData[e.code] = [];
+      keyData[e.code]['gain'] = new GainNode(audioCtx, { gain: 0 });
+      keyData[e.code]['oscillator'] = audioCtx.createOscillator();
+      keyData[e.code]['oscillator'].connect(keyData[e.code]['gain']).connect(gainNode).connect(audioCtx.destination);
+      keyData[e.code]['oscillator'].type = waveType; // Set waveform type
+      keyData[e.code]['oscillator'].frequency.setValueAtTime(freq, audioCtx.currentTime);
+      keyData[e.code]['oscillator'].start();
+
+      // Ramp quickly up - attack.
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
+      // Then decay down to a sustain level
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+    }
 
     rangeY.value = freq;
     spanY.innerHTML = freq.toFixed(2);
@@ -427,21 +461,40 @@ window.onload = function() {
   });
 
   body.addEventListener("keyup", function(e) {
+
+    var release = parseFloat(rangeR.value);
     // this event fires right away on mobile keyboard input.
-    var timeout = 0;
+    // delay stopping oscillators otherwise no sound is heard.
     if (e.target.nodeName == "INPUT" && e.target.type == "text") {
-      timeout = 100;
+      setTimeout(function() {
+        // oscillators[e.code].stop();
+        // delete oscillators[e.code];
+        keyData[e.code]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
+        keyData[e.code]['gain'].gain.setTargetAtTime(0, audioCtx.currentTime, release);
+      }, release * 1000);
+      return;
     }
 
-    // setTimeout to lower volume
-    gainTimeout = setTimeout(function() { 
-      if (oscillators[e.code]) {
-        oscillators[e.code].stop();
-        delete oscillators[e.code];
+    if (!keyData[e.code]) {
+      return;
+    }
+
+    // lower volume immediately.
+    keyData[e.code]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
+    keyData[e.code]['gain'].gain.setTargetAtTime(0, audioCtx.currentTime, release);
+    console.log("start gain lowering");
+
+    // then setTimeout to kill oscillator.
+    keyData[e.code]['timeout'] = setTimeout(function() {
+      if (keyData[e.code]['oscillator']) {
+        console.log("end gain lowering");
+        // @todo keep all nodes?
+        // keyData[e.code]['gain'].disconnect();
+        // keyData[e.code]['oscillator'].stop();
+        // delete keyData[e.code];
       }
-      // gainNode.gain.value = 0;
-      // gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + parseFloat(rangeX.value));
-    }, timeout);
+    }, release * 1000);
+
   });
 
 };

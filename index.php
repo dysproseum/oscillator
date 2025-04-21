@@ -32,12 +32,19 @@
   
   <div class="flex-box">
     <div class="flex-item">
-      Gain: <input id="v" type="range" min="0" max="1" step="0.01" value="0.1" />
+      Gain: <input id="v" type="range" min="0" max="1" step="0.1" value="0.5" />
       Octave: <span id="octave">3</span>
     </div>
     <div id="virtual-keyboard"></div>
     <div class="flex-item">
-      Decay: <input id="x" type="range" min="0" max="1" value="0.1" step="0.1" />
+      <div class="flex-row" style="margin-right: 0.5rem;">
+        Attack: <input id="a" type="range" min="0" max="1" value="0.5" step="0.1" />
+        Decay: <input id="d" type="range" min="0" max="1" value="0.5" step="0.1" />
+      </div>
+      <div class="flex-row">
+        Sustain: <input id="s" type="range" min="0" max="1" value="0.5" step="0.1" />
+        Release: <input id="r" type="range" min="0" max="1" value="0.5" step="0.1" />
+      </div>
     </div>
   </div>
   
