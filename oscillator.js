@@ -329,26 +329,48 @@ window.onload = function() {
       return;
     }
 
-    oscillators[this.id] = audioCtx.createOscillator();
-    oscillators[this.id].type = waveType; // Set waveform type
-    oscillators[this.id].connect(gainNode).connect(audioCtx.destination);
-
     var note = this.id + (parseInt(this.dataset.octave) + parseInt(octaveNum));
     var freq = getFrequency(note);
-    oscillators[this.id].frequency.setValueAtTime(freq, audioCtx.currentTime);
-    oscillators[this.id].start();
-    //gainNode.gain.value = rangeV.value;
+
+    // Use keyData array with gainNodes.
+    if (keyData[this.id]) {
+      if (keyData[this.id]['oscillator'].frequency.value.toFixed(2) != freq.toFixed(2)) {
+        keyData[this.id]['oscillator'].frequency.setValueAtTime(freq, audioCtx.currentTime);
+      }
+      if (keyData[this.id]['oscillator'].type != waveType) {
+        keyData[this.id]['oscillator'].type = waveType;
+      }
+
+      // Ramp quickly up - attack.
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
+      // Then decay down to a sustain level
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+    }
+    else {
+      keyData[this.id] = [];
+      keyData[this.id]['gain'] = new GainNode(audioCtx, { gain: 0 });
+      keyData[this.id]['oscillator'] = audioCtx.createOscillator();
+      keyData[this.id]['oscillator'].connect(keyData[this.id]['gain']).connect(gainNode).connect(audioCtx.destination);
+      keyData[this.id]['oscillator'].type = waveType; // Set waveform type
+      keyData[this.id]['oscillator'].frequency.setValueAtTime(freq, audioCtx.currentTime);
+      keyData[this.id]['oscillator'].start();
+
+      // Ramp quickly up - attack.
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
+      // Then decay down to a sustain level
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+    }
 
     rangeY.value = freq;
     spanY.innerHTML = freq.toFixed(2);
   };
 
   var btnRelease = function(e) {
-    //console.log(e);
-    if (oscillators[this.id]) {
-      oscillators[this.id].stop();
-    }
-    //delete oscillators[this.id];
+    var release = parseFloat(rangeR.value);
+    // lower volume immediately.
+    keyData[this.id]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
+    keyData[this.id]['gain'].gain.setTargetAtTime(0, audioCtx.currentTime, release);
+    console.log("start gain lowering");
   };
 
   var setupOctaveButton = function(item) {
@@ -399,6 +421,7 @@ window.onload = function() {
 
   var body = document.querySelector("body");
   body.addEventListener("keydown", function(e) {
+    console.log(e.keyCode);
     if (e.target.nodeName == "INPUT" && e.target.type == "text") {
       // e.preventDefault();
       // return false;
@@ -466,7 +489,7 @@ window.onload = function() {
     // this event fires right away on mobile keyboard input.
     // delay stopping oscillators otherwise no sound is heard.
     if (e.target.nodeName == "INPUT" && e.target.type == "text") {
-      setTimeout(function() {
+      keyData[e.code]['timeout'] = setTimeout(function() {
         // oscillators[e.code].stop();
         // delete oscillators[e.code];
         keyData[e.code]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
@@ -482,12 +505,12 @@ window.onload = function() {
     // lower volume immediately.
     keyData[e.code]['gain'].gain.cancelScheduledValues(audioCtx.currentTime);
     keyData[e.code]['gain'].gain.setTargetAtTime(0, audioCtx.currentTime, release);
-    console.log("start gain lowering");
+    // console.log("start gain lowering");
 
     // then setTimeout to kill oscillator.
     keyData[e.code]['timeout'] = setTimeout(function() {
       if (keyData[e.code]['oscillator']) {
-        console.log("end gain lowering");
+        // console.log("end gain lowering");
         // @todo keep all nodes?
         // keyData[e.code]['gain'].disconnect();
         // keyData[e.code]['oscillator'].stop();
