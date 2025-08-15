@@ -16,6 +16,8 @@
       Oscillator
       <button id="start">Start</button>
       <button id="stop">Stop</button>
+      <input type="radio" name="base" value="440" checked="checked" /> 440Hz
+      <input type="radio" name="base" value="432" /> 432Hz
     </div>
     <div style="float:right">
       <button id="sine">Sine</button>

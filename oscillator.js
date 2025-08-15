@@ -36,7 +36,8 @@ var getFrequency = function (note) {
     }
 
     // Return frequency of note
-    return 440 * Math.pow(2, (keyNumber- 49) / 12);
+    var baseNote = document.querySelector("input[name=base]:checked").value;
+    return baseNote * Math.pow(2, (keyNumber- 49) / 12);
 };
 
 function mapKeyToNote(key) {
