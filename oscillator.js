@@ -345,7 +345,7 @@ window.onload = function() {
       // Ramp quickly up - attack.
       keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
       // Then decay down to a sustain level
-      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeS.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
     }
     else {
       keyData[this.id] = [];
@@ -359,7 +359,7 @@ window.onload = function() {
       // Ramp quickly up - attack.
       keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
       // Then decay down to a sustain level
-      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+      keyData[this.id]['gain'].gain.setTargetAtTime(parseFloat(rangeS.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
     }
 
     rangeY.value = freq;
@@ -456,7 +456,7 @@ window.onload = function() {
       // Ramp quickly up - attack.
       keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
       // Then decay down to a sustain level
-      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeS.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
     }
     else if (keyData[e.code]) {
       // this event keeps getting fired while the key is held down.
@@ -474,7 +474,7 @@ window.onload = function() {
       // Ramp quickly up - attack.
       keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value) + 0.2, audioCtx.currentTime, parseFloat(rangeA.value));
       // Then decay down to a sustain level
-      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeV.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
+      keyData[e.code]['gain'].gain.setTargetAtTime(parseFloat(rangeS.value), audioCtx.currentTime + parseFloat(rangeA.value), parseFloat(rangeD.value));
     }
 
     rangeY.value = freq;

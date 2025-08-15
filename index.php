@@ -42,12 +42,12 @@
     <div id="virtual-keyboard"></div>
     <div class="flex-item">
       <div class="flex-row" style="margin-right: 0.5rem;">
-        Attack: <input id="a" type="range" min="0" max="1" value="0.5" step="0.1" />
-        Decay: <input id="d" type="range" min="0" max="1" value="0.5" step="0.1" />
+        Attack: <input id="a" type="range" min="0" max="1" value="0.01" step="0.01" />
+        Decay: <input id="d" type="range" min="0" max="1" value="0.25" step="0.01" />
       </div>
       <div class="flex-row">
-        Sustain: <input id="s" type="range" min="0" max="1" value="0.5" step="0.1" />
-        Release: <input id="r" type="range" min="0" max="1" value="0.5" step="0.1" />
+        Sustain: <input id="s" type="range" min="0" max="1" value="0.25" step="0.01" />
+        Release: <input id="r" type="range" min="0" max="1" value="0.01" step="0.01" />
       </div>
     </div>
   </div>
