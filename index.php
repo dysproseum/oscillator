@@ -1,6 +1,8 @@
 <html>
 <head>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0" />
+<link rel="stylesheet" media="only screen and (max-width: 768px)" href="mobile.css" type="text/css">
 <script type="text/javascript" src="oscilloscope.js"></script>
 <script type="text/javascript" src="oscillator.js"></script>
 </head>
