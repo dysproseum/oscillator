@@ -12,6 +12,7 @@ var octaveNum = 3;
 var spanOctave;
 
 var waveType = "sine";
+let delay;
 
 // Takes string of Note + Octave
 // Example:
@@ -119,6 +120,22 @@ function toggleKeyPress() {
     btn.classList.add("active");
 }
 
+function getCombFilter(audioCtx){
+  const node = audioCtx.createGain()
+  const lowPass = new BiquadFilterNode(audioCtx, {type: 'lowpass', frequency: 440})
+  delay = new DelayNode(audioCtx, {delayTime: 0.25})
+  const gain = audioCtx.createGain()
+  gain.gain.setValueAtTime(0.5, audioCtx.currentTime)
+
+  node
+    .connect(delay)
+    .connect(lowPass)
+    .connect(gain)
+    .connect(node)
+
+  return node
+}
+
 window.onload = function() {
 
   var btnStart = document.getElementById("start");
@@ -128,7 +145,20 @@ window.onload = function() {
     
     // Create GainNode to control volume
     gainNode = new GainNode(audioCtx, { gain: rangeV.value }); // Set initial gain
-    
+
+    // Reverb
+    var reverb = document.getElementById("reverb");
+    reverb.addEventListener("change", function() {
+      delay.delayTime.value = this.value;
+    });
+
+    // https://itnext.io/convolution-reverb-and-web-audio-api-8ee65108f4ae
+    const combFilter = getCombFilter(audioCtx);
+    const output = audioCtx.destination;
+    gainNode
+      .connect(combFilter)
+      .connect(output);
+
     // Start and connect oscilloscope.
     oscilloscope();
   });

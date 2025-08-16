@@ -37,6 +37,7 @@
   <div class="flex-box">
     <div class="flex-item">
       Gain: <input id="v" type="range" min="0" max="1" step="0.1" value="0.5" />
+      Reverb: <input id="reverb" type="range" min="0" max="1" step="0.1" value="0.25" />
       Octave: <span id="octave">3</span>
     </div>
     <div id="virtual-keyboard"></div>
